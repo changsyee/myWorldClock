@@ -16,13 +16,19 @@
             padding: 20px; 
         }
         
-        /* Updated Canvas CSS to force perfect scaling on iOS */
+        /* The foolproof fix for iOS Safari: A strict wrapper */
+        .canvas-wrapper {
+            width: 100%;
+            max-width: 700px;
+            aspect-ratio: 700 / 610; /* Locks the box perfectly to your canvas dimensions */
+            margin-top: 30px;
+        }
+        
+        /* Canvas fills the perfect box */
         canvas { 
-            margin-top: 30px; 
             width: 100%; 
-            max-width: 700px; 
-            height: auto; 
-            aspect-ratio: 700 / 610; /* Ensures the canvas never squishes into an oval */
+            height: 100%; 
+            display: block; 
         }
         
         .text-widget { text-align: center; font-weight: bold; margin-top: 15px; }
@@ -37,10 +43,14 @@
     </style>
 </head>
 <body>
-    <canvas id="clockCanvas" width="700" height="610"></canvas>
+    <div class="canvas-wrapper">
+        <canvas id="clockCanvas" width="700" height="610"></canvas>
+    </div>
+    
     <div id="dow-display" class="text-widget"></div>
     <div id="seoul-display" class="text-widget"></div>
     <div id="sydney-display" class="text-widget"></div>
+    
     <script>
         const canvas = document.getElementById("clockCanvas");
         const ctx = canvas.getContext("2d");
@@ -50,10 +60,8 @@
         const DicKorDoW = {1:"(월)", 2:"(화)", 3:"(수)", 4:"(목)", 5:"(금)", 6:"(토)", 7:"(일)"};
         const DicColDoW = {1:"LightGreen", 2:"Orange", 3:"Blue", 4:"LightBlue", 5:"SlateBlue", 6:"Tomato", 7:"Tomato"};
 
-        // Helper function to get timezone specific formatted time (MM-DD HH:MM)
         function getTzTime(timeZone) {
             const now = new Date();
-            // Convert current time to the target timezone
             const tzDate = new Date(now.toLocaleString("en-US", { timeZone: timeZone }));
             const month = String(tzDate.getMonth() + 1).padStart(2, '0');
             const day = String(tzDate.getDate()).padStart(2, '0');
@@ -65,9 +73,9 @@
 
         function drawClock() {
             const now = new Date();
-            ctx.clearRect(0, 0, WIDTH, HEIGHT); // Clear Canvas
+            ctx.clearRect(0, 0, WIDTH, HEIGHT); 
 
-            // Draw Clock Face (Outer Circle)
+            // Draw Clock Face 
             ctx.beginPath();
             ctx.arc(CNTR_X, CNTR_Y, RADIUS, 0, 2 * Math.PI);
             ctx.lineWidth = 4;
@@ -86,7 +94,7 @@
                 ctx.fillText(i.toString(), x, y);
             }
 
-            // Draw Year and Date on Canvas
+            // Draw Year and Date
             ctx.font = "bold 32px Helvetica";
             ctx.fillStyle = "wheat";
             ctx.fillText(now.getFullYear().toString().padStart(4, '0'), 100, 590);
@@ -132,9 +140,8 @@
         }
 
         function updateTextWidgets(now) {
-            // Day of Week Logic (ISO format: 1=Mon ... 7=Sun)
             let dowNum = now.getDay();
-            if (dowNum === 0) dowNum = 7; // Convert Sunday(0) to ISO(7)
+            if (dowNum === 0) dowNum = 7; 
 
             const dowEng = now.toLocaleDateString("en-US", { weekday: 'short' });
             const dowKor = DicKorDoW[dowNum];
@@ -143,7 +150,6 @@
             dowDisplay.innerText = `${dowEng} ${dowKor}`;
             dowDisplay.style.color = DicColDoW[dowNum];
 
-            // World Clock Logic
             const timeSeoul = getTzTime("Asia/Seoul");
             const timeSydney = getTzTime("Australia/Sydney");
 
@@ -151,7 +157,6 @@
             document.getElementById("sydney-display").innerText = `🇦🇺 Sydney: ${timeSydney}`;
         }
 
-        // Initialize and loop every second
         drawClock();
         setInterval(drawClock, 1000);
 
