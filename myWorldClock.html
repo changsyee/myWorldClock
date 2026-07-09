@@ -5,14 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seoul & Sydney World Clock</title>
     <style>
-        body { background-color: black; color: white; font-family: Helvetica, sans-serif;
-            display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
-        /* Ensures canvas scales well on smaller screens but keeps native res */
-        canvas { margin-top: 30px; max-width: 100%; height: auto; }
+        body { 
+            background-color: black; 
+            color: white; 
+            font-family: Helvetica, sans-serif;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        
+        /* Updated Canvas CSS to force perfect scaling on iOS */
+        canvas { 
+            margin-top: 30px; 
+            width: 100%; 
+            max-width: 700px; 
+            height: auto; 
+            aspect-ratio: 700 / 610; /* Ensures the canvas never squishes into an oval */
+        }
+        
         .text-widget { text-align: center; font-weight: bold; margin-top: 15px; }
         #dow-display { font-size: 28px; margin-top: 10px; }
-        #seoul-display { font-size: 32px; color: #76D4EB; margin-top: 20px;
-            font-family: 'Gungsuh', Helvetica, sans-serif;  }
+        #seoul-display { 
+            font-size: 32px; 
+            color: #76D4EB; 
+            margin-top: 20px;
+            font-family: 'Gungsuh', Helvetica, sans-serif;  
+        }
         #sydney-display { font-size: 30px; color: #58CD3E; margin-top: 10px; }
     </style>
 </head>
