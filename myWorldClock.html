@@ -13,18 +13,18 @@
             flex-direction: column; 
             align-items: center; 
             margin: 0; 
-            padding: 20px; 
+            /* Reduced padding to allow the clock to physically expand on mobile screens */
+            padding: 5px; 
         }
         
-        /* The foolproof fix for iOS Safari: A strict wrapper */
         .canvas-wrapper {
             width: 100%;
-            max-width: 700px;
-            aspect-ratio: 700 / 610; /* Locks the box perfectly to your canvas dimensions */
+            /* Increased by 8% */
+            max-width: 756px; 
+            aspect-ratio: 756 / 659; 
             margin-top: 30px;
         }
         
-        /* Canvas fills the perfect box */
         canvas { 
             width: 100%; 
             height: 100%; 
@@ -32,19 +32,19 @@
         }
         
         .text-widget { text-align: center; font-weight: bold; margin-top: 15px; }
-        #dow-display { font-size: 28px; margin-top: 10px; }
+        #dow-display { font-size: 30px; margin-top: 10px; }
         #seoul-display { 
-            font-size: 32px; 
+            font-size: 35px; 
             color: #76D4EB; 
             margin-top: 20px;
             font-family: 'Gungsuh', Helvetica, sans-serif;  
         }
-        #sydney-display { font-size: 30px; color: #58CD3E; margin-top: 10px; }
+        #sydney-display { font-size: 32px; color: #58CD3E; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="canvas-wrapper">
-        <canvas id="clockCanvas" width="700" height="610"></canvas>
+        <canvas id="clockCanvas" width="756" height="659"></canvas>
     </div>
     
     <div id="dow-display" class="text-widget"></div>
@@ -55,7 +55,8 @@
         const canvas = document.getElementById("clockCanvas");
         const ctx = canvas.getContext("2d");
 
-        const WIDTH = 700; const HEIGHT = 610; const RADIUS = 300;
+        // All dimensions scaled up by 1.08
+        const WIDTH = 756; const HEIGHT = 659; const RADIUS = 324;
         const CNTR_X = WIDTH / 2; const CNTR_Y = HEIGHT / 2;
         const DicKorDoW = {1:"(월)", 2:"(화)", 3:"(수)", 4:"(목)", 5:"(금)", 6:"(토)", 7:"(일)"};
         const DicColDoW = {1:"LightGreen", 2:"Orange", 3:"Blue", 4:"LightBlue", 5:"SlateBlue", 6:"Tomato", 7:"Tomato"};
@@ -83,24 +84,25 @@
             ctx.stroke();
 
             // Draw Numbers
-            ctx.font = "bold 32px Helvetica";
+            ctx.font = "bold 35px Helvetica"; // Scaled font
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             for (let i = 1; i <= 12; i++) {
                 const angle = (i * 30 - 90) * (Math.PI / 180);
-                const x = CNTR_X + (RADIUS - 20) * Math.cos(angle);
-                const y = CNTR_Y + (RADIUS - 20) * Math.sin(angle);
+                const x = CNTR_X + (RADIUS - 22) * Math.cos(angle);
+                const y = CNTR_Y + (RADIUS - 22) * Math.sin(angle);
                 ctx.fillText(i.toString(), x, y);
             }
 
             // Draw Year and Date
-            ctx.font = "bold 32px Helvetica";
+            ctx.font = "bold 35px Helvetica";
             ctx.fillStyle = "wheat";
-            ctx.fillText(now.getFullYear().toString().padStart(4, '0'), 100, 590);
+            // Coordinates adjusted for new 8% larger canvas
+            ctx.fillText(now.getFullYear().toString().padStart(4, '0'), 108, 637);
             
             const dateStr = String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
-            ctx.fillText(dateStr, 600, 590);
+            ctx.fillText(dateStr, 648, 637);
 
             // Calculate Angles
             const sec = now.getSeconds();
