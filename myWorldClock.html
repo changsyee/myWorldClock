@@ -13,13 +13,11 @@
             flex-direction: column; 
             align-items: center; 
             margin: 0; 
-            /* Reduced padding to allow the clock to physically expand on mobile screens */
             padding: 5px; 
         }
         
         .canvas-wrapper {
             width: 100%;
-            /* Increased by 8% */
             max-width: 756px; 
             aspect-ratio: 756 / 659; 
             margin-top: 30px;
@@ -55,7 +53,6 @@
         const canvas = document.getElementById("clockCanvas");
         const ctx = canvas.getContext("2d");
 
-        // All dimensions scaled up by 1.08
         const WIDTH = 756; const HEIGHT = 659; const RADIUS = 324;
         const CNTR_X = WIDTH / 2; const CNTR_Y = HEIGHT / 2;
         const DicKorDoW = {1:"(월)", 2:"(화)", 3:"(수)", 4:"(목)", 5:"(금)", 6:"(토)", 7:"(일)"};
@@ -83,26 +80,27 @@
             ctx.strokeStyle = "coral";
             ctx.stroke();
 
-            // Draw Numbers
-            ctx.font = "bold 35px Helvetica"; // Scaled font
+            // Draw Numbers (Font increased by 60% to 56px)
+            ctx.font = "bold 56px Helvetica"; 
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             for (let i = 1; i <= 12; i++) {
                 const angle = (i * 30 - 90) * (Math.PI / 180);
-                const x = CNTR_X + (RADIUS - 22) * Math.cos(angle);
-                const y = CNTR_Y + (RADIUS - 22) * Math.sin(angle);
+                // Pulled numbers inward slightly (from -22 to -38) so they don't clip the outer ring
+                const x = CNTR_X + (RADIUS - 38) * Math.cos(angle);
+                const y = CNTR_Y + (RADIUS - 38) * Math.sin(angle);
                 ctx.fillText(i.toString(), x, y);
             }
 
-            // Draw Year and Date
-            ctx.font = "bold 35px Helvetica";
+            // Draw Year and Date (Font increased by 60% to 56px)
+            ctx.font = "bold 56px Helvetica";
             ctx.fillStyle = "wheat";
-            // Coordinates adjusted for new 8% larger canvas
-            ctx.fillText(now.getFullYear().toString().padStart(4, '0'), 108, 637);
+            // Coordinates adjusted to fit the larger fonts perfectly inside the corners
+            ctx.fillText(now.getFullYear().toString().padStart(4, '0'), 130, 620);
             
             const dateStr = String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
-            ctx.fillText(dateStr, 648, 637);
+            ctx.fillText(dateStr, 626, 620);
 
             // Calculate Angles
             const sec = now.getSeconds();
