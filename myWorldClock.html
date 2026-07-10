@@ -1,6 +1,6 @@
 <!------=---------=---------=---------=---------=---------=---------=------------->
 <!-- 2026-0709 Darloh  iPhone ver of myWorldClock to make WebBasedApp on Github -->
-<!--                   made as close as my Xcode program as possible            -->
+<!--     made as close as my Xcode program as possible. The bell sound is fixed -->
 <!------=---------=---------=---------=---------=---------=---------=------------->
 <!DOCTYPE html>
 <html lang="en">
@@ -43,19 +43,18 @@
         }
         #sydney-display { font-size: 32px; color: #58CD3E; margin-top: 10px; }
 
-        /* Swift-matched Buttons Styling */
         .controls-row {
             display: flex;
             gap: 8px;
             margin-top: 30px;
             width: 100%;
-            max-width: 420px; /* Slightly wider to fit the countdown text */
+            max-width: 420px; 
             justify-content: center;
             padding: 0 10px;
         }
         
         .wake-btn {
-            background-color: #007AFF; /* iOS Standard Blue */
+            background-color: #007AFF; 
             color: white;
             border: none;
             border-radius: 12px;
@@ -68,12 +67,11 @@
         }
 
         .wake-btn.mid-btn {
-            flex: 1.8; /* Make middle button wider for the MM:SS text */
+            flex: 1.8; 
         }
 
-        /* Active State matching SwiftUI Color.green */
         .wake-btn.active {
-            background-color: #34C759; /* iOS Standard Green */
+            background-color: #34C759; 
         }
     </style>
 </head>
@@ -94,7 +92,7 @@
 
     <script>
         // ==========================================
-        // CLOCK DRAWING LOGIC (Unchanged)
+        // CLOCK DRAWING LOGIC 
         // ==========================================
         const canvas = document.getElementById("clockCanvas");
         const ctx = canvas.getContext("2d");
@@ -193,7 +191,7 @@
         setInterval(drawClock, 1000);
 
         // ==========================================
-        // SWIFT-MATCHED SCREEN WAKE SYSTEM
+        // SCREEN WAKE & AUDIO SYSTEM
         // ==========================================
         const kAWAKE_T_MIN0 = 50;
         const kAWAKE_T_MIN1 = 20;
@@ -203,16 +201,32 @@
         let countdownTimer = null;
         let wakeLock = null;
 
-        // Sound Player function
-        function playSound() {
-            // NOTE: To use your exact MP3 file, uncomment the 3 lines below and upload Emillae.mp3 to your web host
-            // const audio = new Audio('Emillae.mp3');
-            // audio.volume = 0.03;
-            // audio.play();
+        // Global Audio Context so it stays alive
+        let audioCtx = null;
 
-            // Web-synthesized fallback chime so it still rings if no MP3 is found
+        // Call this immediately on button click to satisfy iOS security
+        function unlockAudioEngine() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            // Play a completely silent ping to "unlock" the audio for later
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0; // 0 volume = completely silent
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } catch(e) { console.log("Audio unlock failed"); }
+        }
+
+        function playSound() {
+            if (!audioCtx) return; 
+            try {
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 oscillator.type = 'sine';
@@ -220,23 +234,23 @@
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
                 oscillator.start();
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 2); // Fade out over 2 secs
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 2); // Fade out
                 oscillator.stop(audioCtx.currentTime + 2);
-            } catch(e) { console.log("Audio not supported"); }
+            } catch(e) { console.log("Audio play failed"); }
         }
 
-        // Request Lock API
         async function requestWakeLock() {
             try {
                 wakeLock = await navigator.wakeLock.request('screen');
             } catch (err) {
                 console.error(`Wake Lock error: ${err.message}`);
-                cancelScreenAwake(); // Fallback if phone blocks it
+                cancelScreenAwake(); 
             }
         }
 
-        // Middle Button Logic (50 min default)
+        // Middle Button Logic
         async function toggleScreenAwake() {
+            unlockAudioEngine(); // Unlock audio immediately on click
             if (isScreenAwake) { 
                 cancelScreenAwake(); 
             } else {
@@ -247,10 +261,11 @@
             }
         }
 
-        // Left Button Logic (-5 mins / 20 min default)
+        // Left Button Logic
         async function toglScrnAwkM() {
+            unlockAudioEngine(); // Unlock audio immediately on click
             if (isScreenAwake) {
-                secondsRemaining = Math.max(0, secondsRemaining - 300); // Subtract 5 mins
+                secondsRemaining = Math.max(0, secondsRemaining - 300); 
                 updateUI();
             } else {
                 isScreenAwake = true;
@@ -260,10 +275,11 @@
             }
         }
 
-        // Right Button Logic (+5 mins / 50 min default)
+        // Right Button Logic 
         async function toglScrnAwkP() {
+            unlockAudioEngine(); // Unlock audio immediately on click
             if (isScreenAwake) {
-                secondsRemaining += 300; // Add 5 mins
+                secondsRemaining += 300; 
                 updateUI();
             } else {
                 isScreenAwake = true;
@@ -301,7 +317,6 @@
             }, 1000);
         }
 
-        // Mirrors the SwiftUI Dynamic Button Text & Colors
         function updateUI() {
             const btnLeft = document.getElementById('btn-left');
             const btnMid = document.getElementById('btn-mid');
@@ -329,7 +344,6 @@
             }
         }
 
-        // Handle iOS minimizing Safari
         document.addEventListener('visibilitychange', async () => {
             if (document.visibilityState === 'visible' && isScreenAwake) {
                 await requestWakeLock();
