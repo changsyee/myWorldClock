@@ -1,3 +1,7 @@
+<!------=---------=---------=---------=---------=---------=---------=------------->
+<!-- 2026-0709 Darloh  iPhone ver of myWorldClock to make WebBasedApp on Github -->
+<!--                   made as close as my Xcode program as possible            -->
+<!------=---------=---------=---------=---------=---------=---------=------------->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,7 +24,7 @@
             width: 100%;
             max-width: 756px; 
             aspect-ratio: 756 / 659; 
-            margin-top: 50px;
+            margin-top: 30px;
         }
         
         canvas { 
@@ -34,10 +38,43 @@
         #seoul-display { 
             font-size: 35px; 
             color: #76D4EB; 
-            margin-top: 60px;
+            margin-top: 20px;
             font-family: 'Gungsuh', Helvetica, sans-serif;  
         }
         #sydney-display { font-size: 32px; color: #58CD3E; margin-top: 10px; }
+
+        /* Swift-matched Buttons Styling */
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 420px; /* Slightly wider to fit the countdown text */
+            justify-content: center;
+            padding: 0 10px;
+        }
+        
+        .wake-btn {
+            background-color: #007AFF; /* iOS Standard Blue */
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 10px;
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .wake-btn.mid-btn {
+            flex: 1.8; /* Make middle button wider for the MM:SS text */
+        }
+
+        /* Active State matching SwiftUI Color.green */
+        .wake-btn.active {
+            background-color: #34C759; /* iOS Standard Green */
+        }
     </style>
 </head>
 <body>
@@ -49,7 +86,16 @@
     <div id="seoul-display" class="text-widget"></div>
     <div id="sydney-display" class="text-widget"></div>
     
+    <div class="controls-row">
+        <button id="btn-left" class="wake-btn" onclick="toglScrnAwkM()">20분간</button>
+        <button id="btn-mid" class="wake-btn mid-btn" onclick="toggleScreenAwake()">화면 켜두기</button>
+        <button id="btn-right" class="wake-btn" onclick="toglScrnAwkP()">50분간</button>
+    </div>
+
     <script>
+        // ==========================================
+        // CLOCK DRAWING LOGIC (Unchanged)
+        // ==========================================
         const canvas = document.getElementById("clockCanvas");
         const ctx = canvas.getContext("2d");
 
@@ -65,7 +111,6 @@
             const day = String(tzDate.getDate()).padStart(2, '0');
             const hours = String(tzDate.getHours()).padStart(2, '0');
             const minutes = String(tzDate.getMinutes()).padStart(2, '0');
-            
             return `${month}-${day} ${hours}:${minutes}`;
         }
 
@@ -73,36 +118,30 @@
             const now = new Date();
             ctx.clearRect(0, 0, WIDTH, HEIGHT); 
 
-            // Draw Clock Face 
             ctx.beginPath();
             ctx.arc(CNTR_X, CNTR_Y, RADIUS, 0, 2 * Math.PI);
             ctx.lineWidth = 4;
             ctx.strokeStyle = "coral";
             ctx.stroke();
 
-            // Draw Numbers (Font increased by 60% to 56px)
             ctx.font = "bold 56px Helvetica"; 
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             for (let i = 1; i <= 12; i++) {
                 const angle = (i * 30 - 90) * (Math.PI / 180);
-                // Pulled numbers inward slightly (from -22 to -38) so they don't clip the outer ring
                 const x = CNTR_X + (RADIUS - 38) * Math.cos(angle);
                 const y = CNTR_Y + (RADIUS - 38) * Math.sin(angle);
                 ctx.fillText(i.toString(), x, y);
             }
 
-            // Draw Year and Date (Font increased by 60% to 56px)
             ctx.font = "bold 56px Helvetica";
             ctx.fillStyle = "wheat";
-            // Coordinates adjusted to fit the larger fonts perfectly inside the corners
             ctx.fillText(now.getFullYear().toString().padStart(4, '0'), 130, 620);
             
             const dateStr = String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
             ctx.fillText(dateStr, 626, 620);
 
-            // Calculate Angles
             const sec = now.getSeconds();
             const min = now.getMinutes();
             const hr = now.getHours();
@@ -111,12 +150,10 @@
             const minAngle = min * 6 + sec * 0.1;
             const hourAngle = (hr % 12) * 30 + min * 0.5;
 
-            // Draw Hands
             drawHand(hourAngle, RADIUS * 0.5, 7, "white");
             drawHand(minAngle, RADIUS * 0.75, 4, "white");
             drawHand(secAngle, RADIUS * 0.85, 2, "yellow");
 
-            // Draw Center Pin
             ctx.beginPath();
             ctx.arc(CNTR_X, CNTR_Y, 5, 0, 2 * Math.PI);
             ctx.fillStyle = "magenta";
@@ -129,7 +166,6 @@
             const angleRad = (angleDeg - 90) * (Math.PI / 180);
             const x = CNTR_X + length * Math.cos(angleRad);
             const y = CNTR_Y + length * Math.sin(angleRad);
-
             ctx.beginPath();
             ctx.moveTo(CNTR_X, CNTR_Y);
             ctx.lineTo(x, y);
@@ -142,7 +178,6 @@
         function updateTextWidgets(now) {
             let dowNum = now.getDay();
             if (dowNum === 0) dowNum = 7; 
-
             const dowEng = now.toLocaleDateString("en-US", { weekday: 'short' });
             const dowKor = DicKorDoW[dowNum];
             
@@ -150,15 +185,156 @@
             dowDisplay.innerText = `${dowEng} ${dowKor}`;
             dowDisplay.style.color = DicColDoW[dowNum];
 
-            const timeSeoul = getTzTime("Asia/Seoul");
-            const timeSydney = getTzTime("Australia/Sydney");
-
-            document.getElementById("seoul-display").innerText = `🇰🇷 서울: ${timeSeoul}`;
-            document.getElementById("sydney-display").innerText = `🇦🇺 Sydney: ${timeSydney}`;
+            document.getElementById("seoul-display").innerText = `🇰🇷 서울: ${getTzTime("Asia/Seoul")}`;
+            document.getElementById("sydney-display").innerText = `🇦🇺 Sydney: ${getTzTime("Australia/Sydney")}`;
         }
 
         drawClock();
         setInterval(drawClock, 1000);
+
+        // ==========================================
+        // SWIFT-MATCHED SCREEN WAKE SYSTEM
+        // ==========================================
+        const kAWAKE_T_MIN0 = 50;
+        const kAWAKE_T_MIN1 = 20;
+        
+        let isScreenAwake = false;
+        let secondsRemaining = kAWAKE_T_MIN0 * 60;
+        let countdownTimer = null;
+        let wakeLock = null;
+
+        // Sound Player function
+        function playSound() {
+            // NOTE: To use your exact MP3 file, uncomment the 3 lines below and upload Emillae.mp3 to your web host
+            // const audio = new Audio('Emillae.mp3');
+            // audio.volume = 0.03;
+            // audio.play();
+
+            // Web-synthesized fallback chime so it still rings if no MP3 is found
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Chime pitch
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 2); // Fade out over 2 secs
+                oscillator.stop(audioCtx.currentTime + 2);
+            } catch(e) { console.log("Audio not supported"); }
+        }
+
+        // Request Lock API
+        async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+            } catch (err) {
+                console.error(`Wake Lock error: ${err.message}`);
+                cancelScreenAwake(); // Fallback if phone blocks it
+            }
+        }
+
+        // Middle Button Logic (50 min default)
+        async function toggleScreenAwake() {
+            if (isScreenAwake) { 
+                cancelScreenAwake(); 
+            } else {
+                isScreenAwake = true;
+                secondsRemaining = kAWAKE_T_MIN0 * 60;
+                await requestWakeLock();
+                startTimer();
+            }
+        }
+
+        // Left Button Logic (-5 mins / 20 min default)
+        async function toglScrnAwkM() {
+            if (isScreenAwake) {
+                secondsRemaining = Math.max(0, secondsRemaining - 300); // Subtract 5 mins
+                updateUI();
+            } else {
+                isScreenAwake = true;
+                secondsRemaining = kAWAKE_T_MIN1 * 60;
+                await requestWakeLock();
+                startTimer();
+            }
+        }
+
+        // Right Button Logic (+5 mins / 50 min default)
+        async function toglScrnAwkP() {
+            if (isScreenAwake) {
+                secondsRemaining += 300; // Add 5 mins
+                updateUI();
+            } else {
+                isScreenAwake = true;
+                secondsRemaining = kAWAKE_T_MIN0 * 60; 
+                await requestWakeLock();
+                startTimer();
+            }
+        }
+
+        function cancelScreenAwake() {
+            isScreenAwake = false;
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { wakeLock = null; });
+            }
+            secondsRemaining = kAWAKE_T_MIN0 * 60;
+            updateUI();
+        }
+
+        function startTimer() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            updateUI();
+            
+            countdownTimer = setInterval(() => {
+                if (secondsRemaining > 0) {
+                    secondsRemaining -= 1;
+                    updateUI();
+                } else {
+                    playSound();
+                    cancelScreenAwake();
+                }
+            }, 1000);
+        }
+
+        // Mirrors the SwiftUI Dynamic Button Text & Colors
+        function updateUI() {
+            const btnLeft = document.getElementById('btn-left');
+            const btnMid = document.getElementById('btn-mid');
+            const btnRight = document.getElementById('btn-right');
+
+            if (isScreenAwake) {
+                btnLeft.innerText = "-5";
+                btnRight.innerText = "+5";
+                
+                const mins = String(Math.floor(secondsRemaining / 60)).padStart(2, '0');
+                const secs = String(secondsRemaining % 60).padStart(2, '0');
+                btnMid.innerText = `화면 유지 켜짐 (${mins}:${secs})`;
+
+                btnLeft.classList.add('active');
+                btnMid.classList.add('active');
+                btnRight.classList.add('active');
+            } else {
+                btnLeft.innerText = "20분간";
+                btnMid.innerText = "화면 켜두기";
+                btnRight.innerText = "50분간";
+
+                btnLeft.classList.remove('active');
+                btnMid.classList.remove('active');
+                btnRight.classList.remove('active');
+            }
+        }
+
+        // Handle iOS minimizing Safari
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && isScreenAwake) {
+                await requestWakeLock();
+            }
+        });
 
     </script>
 </body>
