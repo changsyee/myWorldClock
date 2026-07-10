@@ -1,5 +1,5 @@
 <!------=---------=---------=---------=---------=---------=---------=------------->
-<!-- 2026-0709 Darloh  iPhone ver of myWorldClock to make WebBasedApp on Github -->
+<!-- 2026-0710 Darloh  iPhone ver of myWorldClock to make WebBasedApp on Github -->
 <!--                   Converted from Xcode. Bell sound, icon made available    -->
 <!------=---------=---------=---------=---------=---------=---------=------------->
 <!DOCTYPE html>
@@ -8,85 +8,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seoul & Sydney World Clock</title>
+    
     <link rel="icon" type="image/png" href="apple-touch-icon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <meta name="apple-mobile-web-app-title" content="World Clock">
+
     <style>
-        body { 
-            background-color: black; 
-            color: white; 
-            font-family: Helvetica, sans-serif;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            margin: 0; 
-            padding: 5px; 
-        }
-        
-        .canvas-wrapper {
-            width: 100%;
-            max-width: 756px; 
-            aspect-ratio: 756 / 659; 
-            margin-top: 30px;
-        }
-        
-        canvas { 
-            width: 100%; 
-            height: 100%; 
-            display: block; 
-        }
-        
+        body { background-color: black; color: white; font-family: Helvetica, sans-serif;
+            display: flex; flex-direction: column; align-items: center; margin: 0; padding: 5px; }
+        .canvas-wrapper { width: 100%; max-width: 756px; aspect-ratio: 756 / 659; margin-top: 30px; }
+        canvas { width: 100%; height: 100%; display: block; }
         .text-widget { text-align: center; font-weight: bold; margin-top: 15px; }
         #dow-display { font-size: 30px; margin-top: 10px; }
-        #seoul-display { 
-            font-size: 35px; 
-            color: #76D4EB; 
-            margin-top: 50px;
-            font-family: 'Gungsuh', Helvetica, sans-serif;  
-        }
+        #seoul-display { font-size: 35px; color: #76D4EB; margin-top: 50px;
+            font-family: 'Gungsuh', Helvetica, sans-serif; }
         #sydney-display { font-size: 32px; color: #58CD3E; margin-top: 10px; }
-
-        .controls-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 80px;
-            width: 100%;
-            max-width: 420px; 
-            justify-content: center;
-            padding: 0 10px;
-        }
-        
-        .wake-btn {
-            background-color: #007AFF; 
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 14px 10px;
-            font-size: 16px;
-            font-weight: bold;
-            flex: 1;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .wake-btn.mid-btn {
-            flex: 1.8; 
-        }
-
-        .wake-btn.active {
-            background-color: #34C759; 
-        }
+        .controls-row { display: flex; gap: 8px; margin-top: 80px; width: 100%;
+            max-width: 420px; justify-content: center; padding: 0 10px; }
+        .wake-btn { background-color: #007AFF; color: white; border: none; border-radius: 12px;
+            padding: 14px 10px; font-size: 16px; font-weight: bold; flex: 1; cursor: pointer;
+            transition: background-color 0.2s; }
+        .wake-btn.mid-btn { flex: 1.8; }
+        .wake-btn.active { background-color: #34C759; }
     </style>
 </head>
 <body>
     <div class="canvas-wrapper">
         <canvas id="clockCanvas" width="756" height="659"></canvas>
     </div>
-    
     <div id="dow-display" class="text-widget"></div>
     <div id="seoul-display" class="text-widget"></div>
     <div id="sydney-display" class="text-widget"></div>
-    
     <div class="controls-row">
         <button id="btn-left" class="wake-btn" onclick="toglScrnAwkM()">20분간</button>
         <button id="btn-mid" class="wake-btn mid-btn" onclick="toggleScreenAwake()">화면 켜두기</button>
@@ -94,9 +46,7 @@
     </div>
 
     <script>
-        // ==========================================
         // CLOCK DRAWING LOGIC 
-        // ==========================================
         const canvas = document.getElementById("clockCanvas");
         const ctx = canvas.getContext("2d");
 
@@ -193,9 +143,7 @@
         drawClock();
         setInterval(drawClock, 1000);
 
-        // ==========================================
         // SCREEN WAKE & AUDIO SYSTEM
-        // ==========================================
         const kAWAKE_T_MIN0 = 50;
         const kAWAKE_T_MIN1 = 20;
         
@@ -203,23 +151,18 @@
         let secondsRemaining = kAWAKE_T_MIN0 * 60;
         let countdownTimer = null;
         let wakeLock = null;
-
-        // Global Audio Context so it stays alive
         let audioCtx = null;
 
-        // Call this immediately on button click to satisfy iOS security
+        // Called on button click to satisfy iOS security
         function unlockAudioEngine() {
             if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            // Play a completely silent ping to "unlock" the audio for later
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            // Play a completely silent ping
             try {
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
-                gainNode.gain.value = 0; // 0 volume = completely silent
+                gainNode.gain.value = 0.001; // Silent
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
                 oscillator.start();
@@ -227,19 +170,33 @@
             } catch(e) { console.log("Audio unlock failed"); }
         }
 
+        // Called when timer hits 0
         function playSound() {
-            if (!audioCtx) return; 
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            
+            // Force resume in case iOS suspended it during the 20 minute wait
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            
             try {
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
+                
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Chime pitch
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Pitch (A5)
+                
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 2); // Fade out
+                
+                // Explicitly start volume at 1, then fade out smoothly
+                gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2); 
+                
+                oscillator.start(audioCtx.currentTime);
                 oscillator.stop(audioCtx.currentTime + 2);
-            } catch(e) { console.log("Audio play failed"); }
+            } catch(e) { 
+                console.log("Audio play failed: ", e); 
+            }
         }
 
         async function requestWakeLock() {
@@ -251,9 +208,8 @@
             }
         }
 
-        // Middle Button Logic
         async function toggleScreenAwake() {
-            unlockAudioEngine(); // Unlock audio immediately on click
+            unlockAudioEngine(); 
             if (isScreenAwake) { 
                 cancelScreenAwake(); 
             } else {
@@ -264,9 +220,8 @@
             }
         }
 
-        // Left Button Logic
         async function toglScrnAwkM() {
-            unlockAudioEngine(); // Unlock audio immediately on click
+            unlockAudioEngine(); 
             if (isScreenAwake) {
                 secondsRemaining = Math.max(0, secondsRemaining - 300); 
                 updateUI();
@@ -278,9 +233,8 @@
             }
         }
 
-        // Right Button Logic 
         async function toglScrnAwkP() {
-            unlockAudioEngine(); // Unlock audio immediately on click
+            unlockAudioEngine(); 
             if (isScreenAwake) {
                 secondsRemaining += 300; 
                 updateUI();
@@ -314,7 +268,7 @@
                     secondsRemaining -= 1;
                     updateUI();
                 } else {
-                    playSound();
+                    playSound(); // RING THE BELL
                     cancelScreenAwake();
                 }
             }, 1000);
