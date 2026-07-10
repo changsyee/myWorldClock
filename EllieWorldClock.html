@@ -1,80 +1,148 @@
+<!------=---------=---------=---------=---------=---------=---------=------------->
+<!-- 2026-0709 Darloh  iPhone ver of myWorldClock to make WebBasedApp on Github -->
+<!--                   <Hyderabad Asia/Kolkata> Version                         -->
+<!------=---------=---------=---------=---------=---------=---------=------------->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seoul & Hyderabad World Clock</title>
+    <link rel="icon" type="image/png" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="World Clock">
     <style>
-        body { background-color: black; color: white; font-family: Helvetica, sans-serif;
-            display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
-        /* Ensures canvas scales well on smaller screens but keeps native res */
-        canvas { margin-top: 30px; width: 100%; max-width: 700px; height: auto; aspect-ratio: 700 / 610; }
+        body { 
+            background-color: black; 
+            color: white; 
+            font-family: Helvetica, sans-serif;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0; 
+            padding: 5px; 
+        }
+        
+        .canvas-wrapper {
+            width: 100%;
+            max-width: 756px; 
+            aspect-ratio: 756 / 659; 
+            margin-top: 30px;
+        }
+        
+        canvas { 
+            width: 100%; 
+            height: 100%; 
+            display: block; 
+        }
+        
         .text-widget { text-align: center; font-weight: bold; margin-top: 15px; }
-        #dow-display { font-size: 28px; margin-top: 10px; }
-        #seoul-display { font-size: 32px; color: #76D4EB; margin-top: 20px;
-            font-family: 'Gungsuh', Helvetica, sans-serif;  }
-        #hyderabad-display { font-size: 30px; color: #58CD3E; margin-top: 10px; }
+        #dow-display { font-size: 30px; margin-top: 10px; }
+        #seoul-display { 
+            font-size: 35px; 
+            color: #76D4EB; 
+            margin-top: 50px;
+            font-family: 'Gungsuh', Helvetica, sans-serif;  
+        }
+        #hyderabady-display { font-size: 32px; color: #58CD3E; margin-top: 10px; }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 80px;
+            width: 100%;
+            max-width: 420px; 
+            justify-content: center;
+            padding: 0 10px;
+        }
+        
+        .wake-btn {
+            background-color: #007AFF; 
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 10px;
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .wake-btn.mid-btn {
+            flex: 1.8; 
+        }
+
+        .wake-btn.active {
+            background-color: #34C759; 
+        }
     </style>
 </head>
 <body>
-    <canvas id="clockCanvas" width="700" height="610"></canvas>
+    <div class="canvas-wrapper">
+        <canvas id="clockCanvas" width="756" height="659"></canvas>
+    </div>
+    
     <div id="dow-display" class="text-widget"></div>
     <div id="seoul-display" class="text-widget"></div>
     <div id="hyderabad-display" class="text-widget"></div>
+    
+    <div class="controls-row">
+        <button id="btn-left" class="wake-btn" onclick="toglScrnAwkM()">20분간</button>
+        <button id="btn-mid" class="wake-btn mid-btn" onclick="toggleScreenAwake()">화면 켜두기</button>
+        <button id="btn-right" class="wake-btn" onclick="toglScrnAwkP()">50분간</button>
+    </div>
+
     <script>
+        // ==========================================
+        // CLOCK DRAWING LOGIC 
+        // ==========================================
         const canvas = document.getElementById("clockCanvas");
         const ctx = canvas.getContext("2d");
 
-        const WIDTH = 700; const HEIGHT = 610; const RADIUS = 300;
+        const WIDTH = 756; const HEIGHT = 659; const RADIUS = 324;
         const CNTR_X = WIDTH / 2; const CNTR_Y = HEIGHT / 2;
         const DicKorDoW = {1:"(월)", 2:"(화)", 3:"(수)", 4:"(목)", 5:"(금)", 6:"(토)", 7:"(일)"};
         const DicColDoW = {1:"LightGreen", 2:"Orange", 3:"Blue", 4:"LightBlue", 5:"SlateBlue", 6:"Tomato", 7:"Tomato"};
 
-        // Helper function to get timezone specific formatted time (MM-DD HH:MM)
         function getTzTime(timeZone) {
             const now = new Date();
-            // Convert current time to the target timezone
             const tzDate = new Date(now.toLocaleString("en-US", { timeZone: timeZone }));
             const month = String(tzDate.getMonth() + 1).padStart(2, '0');
             const day = String(tzDate.getDate()).padStart(2, '0');
             const hours = String(tzDate.getHours()).padStart(2, '0');
             const minutes = String(tzDate.getMinutes()).padStart(2, '0');
-            
             return `${month}-${day} ${hours}:${minutes}`;
         }
 
         function drawClock() {
             const now = new Date();
-            ctx.clearRect(0, 0, WIDTH, HEIGHT); // Clear Canvas
+            ctx.clearRect(0, 0, WIDTH, HEIGHT); 
 
-            // Draw Clock Face (Outer Circle)
             ctx.beginPath();
             ctx.arc(CNTR_X, CNTR_Y, RADIUS, 0, 2 * Math.PI);
             ctx.lineWidth = 4;
             ctx.strokeStyle = "coral";
             ctx.stroke();
 
-            // Draw Numbers
-            ctx.font = "bold 32px Helvetica";
+            ctx.font = "bold 56px Helvetica"; 
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             for (let i = 1; i <= 12; i++) {
                 const angle = (i * 30 - 90) * (Math.PI / 180);
-                const x = CNTR_X + (RADIUS - 20) * Math.cos(angle);
-                const y = CNTR_Y + (RADIUS - 20) * Math.sin(angle);
+                const x = CNTR_X + (RADIUS - 38) * Math.cos(angle);
+                const y = CNTR_Y + (RADIUS - 38) * Math.sin(angle);
                 ctx.fillText(i.toString(), x, y);
             }
 
-            // Draw Year and Date on Canvas
-            ctx.font = "bold 32px Helvetica";
+            ctx.font = "bold 56px Helvetica";
             ctx.fillStyle = "wheat";
-            ctx.fillText(now.getFullYear().toString().padStart(4, '0'), 100, 590);
+            ctx.fillText(now.getFullYear().toString().padStart(4, '0'), 130, 620);
             
             const dateStr = String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
-            ctx.fillText(dateStr, 600, 590);
+            ctx.fillText(dateStr, 626, 620);
 
-            // Calculate Angles
             const sec = now.getSeconds();
             const min = now.getMinutes();
             const hr = now.getHours();
@@ -83,12 +151,10 @@
             const minAngle = min * 6 + sec * 0.1;
             const hourAngle = (hr % 12) * 30 + min * 0.5;
 
-            // Draw Hands
             drawHand(hourAngle, RADIUS * 0.5, 7, "white");
             drawHand(minAngle, RADIUS * 0.75, 4, "white");
             drawHand(secAngle, RADIUS * 0.85, 2, "yellow");
 
-            // Draw Center Pin
             ctx.beginPath();
             ctx.arc(CNTR_X, CNTR_Y, 5, 0, 2 * Math.PI);
             ctx.fillStyle = "magenta";
@@ -101,7 +167,6 @@
             const angleRad = (angleDeg - 90) * (Math.PI / 180);
             const x = CNTR_X + length * Math.cos(angleRad);
             const y = CNTR_Y + length * Math.sin(angleRad);
-
             ctx.beginPath();
             ctx.moveTo(CNTR_X, CNTR_Y);
             ctx.lineTo(x, y);
@@ -112,10 +177,8 @@
         }
 
         function updateTextWidgets(now) {
-            // Day of Week Logic (ISO format: 1=Mon ... 7=Sun)
             let dowNum = now.getDay();
-            if (dowNum === 0) dowNum = 7; // Convert Sunday(0) to ISO(7)
-
+            if (dowNum === 0) dowNum = 7; 
             const dowEng = now.toLocaleDateString("en-US", { weekday: 'short' });
             const dowKor = DicKorDoW[dowNum];
             
@@ -123,17 +186,172 @@
             dowDisplay.innerText = `${dowEng} ${dowKor}`;
             dowDisplay.style.color = DicColDoW[dowNum];
 
-            // World Clock Logic
-            const timeSeoul = getTzTime("Asia/Seoul");
-            const timeHyderabad = getTzTime("Asia/Kolkata");
-
-            document.getElementById("seoul-display").innerText = `🇰🇷 서울: ${timeSeoul}`;
-            document.getElementById("hyderabad-display").innerText = `🇮🇳 Hydrb: ${timeHyderabad}`;
+            document.getElementById("seoul-display").innerText = `🇰🇷 서울: ${getTzTime("Asia/Seoul")}`;
+            document.getElementById("hyderabad-display").innerText = `🇮🇳 Hydrb: ${getTzTime("Asia/Kolkata")}`;
         }
 
-        // Initialize and loop every second
         drawClock();
         setInterval(drawClock, 1000);
+
+        // ==========================================
+        // SCREEN WAKE & AUDIO SYSTEM
+        // ==========================================
+        const kAWAKE_T_MIN0 = 50;
+        const kAWAKE_T_MIN1 = 20;
+        
+        let isScreenAwake = false;
+        let secondsRemaining = kAWAKE_T_MIN0 * 60;
+        let countdownTimer = null;
+        let wakeLock = null;
+
+        // Global Audio Context so it stays alive
+        let audioCtx = null;
+
+        // Call this immediately on button click to satisfy iOS security
+        function unlockAudioEngine() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            // Play a completely silent ping to "unlock" the audio for later
+            try {
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0; // 0 volume = completely silent
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } catch(e) { console.log("Audio unlock failed"); }
+        }
+
+        function playSound() {
+            if (!audioCtx) return; 
+            try {
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Chime pitch
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 2); // Fade out
+                oscillator.stop(audioCtx.currentTime + 2);
+            } catch(e) { console.log("Audio play failed"); }
+        }
+
+        async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+            } catch (err) {
+                console.error(`Wake Lock error: ${err.message}`);
+                cancelScreenAwake(); 
+            }
+        }
+
+        // Middle Button Logic
+        async function toggleScreenAwake() {
+            unlockAudioEngine(); // Unlock audio immediately on click
+            if (isScreenAwake) { 
+                cancelScreenAwake(); 
+            } else {
+                isScreenAwake = true;
+                secondsRemaining = kAWAKE_T_MIN0 * 60;
+                await requestWakeLock();
+                startTimer();
+            }
+        }
+
+        // Left Button Logic
+        async function toglScrnAwkM() {
+            unlockAudioEngine(); // Unlock audio immediately on click
+            if (isScreenAwake) {
+                secondsRemaining = Math.max(0, secondsRemaining - 300); 
+                updateUI();
+            } else {
+                isScreenAwake = true;
+                secondsRemaining = kAWAKE_T_MIN1 * 60;
+                await requestWakeLock();
+                startTimer();
+            }
+        }
+
+        // Right Button Logic 
+        async function toglScrnAwkP() {
+            unlockAudioEngine(); // Unlock audio immediately on click
+            if (isScreenAwake) {
+                secondsRemaining += 300; 
+                updateUI();
+            } else {
+                isScreenAwake = true;
+                secondsRemaining = kAWAKE_T_MIN0 * 60; 
+                await requestWakeLock();
+                startTimer();
+            }
+        }
+
+        function cancelScreenAwake() {
+            isScreenAwake = false;
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { wakeLock = null; });
+            }
+            secondsRemaining = kAWAKE_T_MIN0 * 60;
+            updateUI();
+        }
+
+        function startTimer() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            updateUI();
+            
+            countdownTimer = setInterval(() => {
+                if (secondsRemaining > 0) {
+                    secondsRemaining -= 1;
+                    updateUI();
+                } else {
+                    playSound();
+                    cancelScreenAwake();
+                }
+            }, 1000);
+        }
+
+        function updateUI() {
+            const btnLeft = document.getElementById('btn-left');
+            const btnMid = document.getElementById('btn-mid');
+            const btnRight = document.getElementById('btn-right');
+
+            if (isScreenAwake) {
+                btnLeft.innerText = "-5";
+                btnRight.innerText = "+5";
+                
+                const mins = String(Math.floor(secondsRemaining / 60)).padStart(2, '0');
+                const secs = String(secondsRemaining % 60).padStart(2, '0');
+                btnMid.innerText = `화면 유지 켜짐 (${mins}:${secs})`;
+
+                btnLeft.classList.add('active');
+                btnMid.classList.add('active');
+                btnRight.classList.add('active');
+            } else {
+                btnLeft.innerText = "20분간";
+                btnMid.innerText = "화면 켜두기";
+                btnRight.innerText = "50분간";
+
+                btnLeft.classList.remove('active');
+                btnMid.classList.remove('active');
+                btnRight.classList.remove('active');
+            }
+        }
+
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && isScreenAwake) {
+                await requestWakeLock();
+            }
+        });
 
     </script>
 </body>
