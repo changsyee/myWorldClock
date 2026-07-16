@@ -1,6 +1,6 @@
 <!------=---------=---------=---------=---------=---------=---------=------------->
 <!-- 2026-0716 Darloh  WebBasedApp served on Github for iPhone. Xcode Converted -->
-<!--      Adaptive time zones added for travel. Custom Emillae.mp3 alarm sound. -->
+<!--        Adaptive time zones for travel. Korean Temple Bell.mp3 alarm sound. -->
 <!------=---------=---------=---------=---------=---------=---------=------------->
 <!DOCTYPE html>
 <html lang="en">
@@ -42,7 +42,7 @@
         #display-1 { 
             font-size: 35px; 
             color: #76D4EB; 
-            margin-top: 20px;
+            margin-top: 50px;
             font-family: 'Gungsuh', Helvetica, sans-serif;  
         }
         #display-2 { font-size: 32px; color: #58CD3E; margin-top: 10px; }
@@ -50,7 +50,7 @@
         .controls-row {
             display: flex;
             gap: 8px;
-            margin-top: 30px;
+            margin-top: 80px;
             width: 100%;
             max-width: 420px; 
             justify-content: center;
@@ -213,7 +213,7 @@
         let wakeLock = null;
 
         // Initialize custom audio
-        const alarmAudio = new Audio('Emillae.mp3');
+        const alarmAudio = new Audio('Sangwonsa.m4a');
         alarmAudio.load(); // Preload the file
 
         function unlockAudioEngine() {
