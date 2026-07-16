@@ -1,44 +1,90 @@
 <!------=---------=---------=---------=---------=---------=---------=------------->
-<!-- 2026-0710 Darloh  iPhone ver of myWorldClock to make WebBasedApp on Github -->
-<!--                   Converted from Xcode. Bell sound, icon made available    -->
+<!-- 2026-0716 Darloh  WebBasedApp served on Github for iPhone. Xcode Converted -->
+<!--      Adaptive time zones added for travel. Custom Emillae.mp3 alarm sound. -->
 <!------=---------=---------=---------=---------=---------=---------=------------->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seoul & Sydney World Clock</title>
-    
-    <link rel="icon" type="image/png" href="apple-touch-icon.png">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <meta name="apple-mobile-web-app-title" content="World Clock">
-
+    <title>Adaptive World Clock</title>
     <style>
-        body { background-color: black; color: white; font-family: Helvetica, sans-serif;
-            display: flex; flex-direction: column; align-items: center; margin: 0; padding: 5px; }
-        .canvas-wrapper { width: 100%; max-width: 756px; aspect-ratio: 756 / 659; margin-top: 30px; }
-        canvas { width: 100%; height: 100%; display: block; }
+        body { 
+            background-color: black; 
+            color: white; 
+            font-family: Helvetica, sans-serif;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0; 
+            padding: 5px; 
+        }
+        
+        .canvas-wrapper {
+            width: 100%;
+            max-width: 756px; 
+            aspect-ratio: 756 / 659; 
+            margin-top: 30px;
+        }
+        
+        canvas { 
+            width: 100%; 
+            height: 100%; 
+            display: block; 
+        }
+        
         .text-widget { text-align: center; font-weight: bold; margin-top: 15px; }
         #dow-display { font-size: 30px; margin-top: 10px; }
-        #seoul-display { font-size: 35px; color: #76D4EB; margin-top: 50px;
-            font-family: 'Gungsuh', Helvetica, sans-serif; }
-        #sydney-display { font-size: 32px; color: #58CD3E; margin-top: 10px; }
-        .controls-row { display: flex; gap: 8px; margin-top: 80px; width: 100%;
-            max-width: 420px; justify-content: center; padding: 0 10px; }
-        .wake-btn { background-color: #007AFF; color: white; border: none; border-radius: 12px;
-            padding: 14px 10px; font-size: 16px; font-weight: bold; flex: 1; cursor: pointer;
-            transition: background-color 0.2s; }
-        .wake-btn.mid-btn { flex: 1.8; }
-        .wake-btn.active { background-color: #34C759; }
+        
+        #display-1 { 
+            font-size: 35px; 
+            color: #76D4EB; 
+            margin-top: 20px;
+            font-family: 'Gungsuh', Helvetica, sans-serif;  
+        }
+        #display-2 { font-size: 32px; color: #58CD3E; margin-top: 10px; }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 420px; 
+            justify-content: center;
+            padding: 0 10px;
+        }
+        
+        .wake-btn {
+            background-color: #007AFF; 
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 10px;
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .wake-btn.mid-btn {
+            flex: 1.8; 
+        }
+
+        .wake-btn.active {
+            background-color: #34C759; 
+        }
     </style>
 </head>
 <body>
     <div class="canvas-wrapper">
         <canvas id="clockCanvas" width="756" height="659"></canvas>
     </div>
+    
     <div id="dow-display" class="text-widget"></div>
-    <div id="seoul-display" class="text-widget"></div>
-    <div id="sydney-display" class="text-widget"></div>
+    <div id="display-1" class="text-widget"></div>
+    <div id="display-2" class="text-widget"></div>
+    
     <div class="controls-row">
         <button id="btn-left" class="wake-btn" onclick="toglScrnAwkM()">20분간</button>
         <button id="btn-mid" class="wake-btn mid-btn" onclick="toggleScreenAwake()">화면 켜두기</button>
@@ -46,7 +92,9 @@
     </div>
 
     <script>
+        // ==========================================
         // CLOCK DRAWING LOGIC 
+        // ==========================================
         const canvas = document.getElementById("clockCanvas");
         const ctx = canvas.getContext("2d");
 
@@ -54,6 +102,8 @@
         const CNTR_X = WIDTH / 2; const CNTR_Y = HEIGHT / 2;
         const DicKorDoW = {1:"(월)", 2:"(화)", 3:"(수)", 4:"(목)", 5:"(금)", 6:"(토)", 7:"(일)"};
         const DicColDoW = {1:"LightGreen", 2:"Orange", 3:"Blue", 4:"LightBlue", 5:"SlateBlue", 6:"Tomato", 7:"Tomato"};
+
+        const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         function getTzTime(timeZone) {
             const now = new Date();
@@ -66,7 +116,7 @@
         }
 
         function drawClock() {
-            const now = new Date();
+            const now = new Date(); 
             ctx.clearRect(0, 0, WIDTH, HEIGHT); 
 
             ctx.beginPath();
@@ -136,14 +186,21 @@
             dowDisplay.innerText = `${dowEng} ${dowKor}`;
             dowDisplay.style.color = DicColDoW[dowNum];
 
-            document.getElementById("seoul-display").innerText = `🇰🇷 서울: ${getTzTime("Asia/Seoul")}`;
-            document.getElementById("sydney-display").innerText = `🇦🇺 Sydney: ${getTzTime("Australia/Sydney")}`;
+            if (localTimeZone === "America/Los_Angeles") {
+                document.getElementById("display-1").innerText = `🇰🇷 서울: ${getTzTime("Asia/Seoul")}`;
+                document.getElementById("display-2").innerText = `🇦🇺 Sydney: ${getTzTime("Australia/Sydney")}`;
+            } else {
+                document.getElementById("display-1").innerText = `🇺🇸 LA: ${getTzTime("America/Los_Angeles")}`;
+                document.getElementById("display-2").innerText = `🇰🇷 서울: ${getTzTime("Asia/Seoul")}`;
+            }
         }
 
         drawClock();
         setInterval(drawClock, 1000);
 
+        // ==========================================
         // SCREEN WAKE & AUDIO SYSTEM
+        // ==========================================
         const kAWAKE_T_MIN0 = 50;
         const kAWAKE_T_MIN1 = 20;
         
@@ -151,52 +208,26 @@
         let secondsRemaining = kAWAKE_T_MIN0 * 60;
         let countdownTimer = null;
         let wakeLock = null;
-        let audioCtx = null;
 
-        // Called on button click to satisfy iOS security
+        // Initialize custom audio
+        const alarmAudio = new Audio('Emillae.mp3');
+        alarmAudio.load(); // Preload the file
+
         function unlockAudioEngine() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-            // Play a completely silent ping
-            try {
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                gainNode.gain.value = 0.001; // Silent
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.1);
-            } catch(e) { console.log("Audio unlock failed"); }
+            // Play and immediately pause to bypass iOS media restrictions
+            alarmAudio.play().then(() => {
+                alarmAudio.pause();
+                alarmAudio.currentTime = 0;
+            }).catch((e) => {
+                console.log("Audio unlock failed, user interaction may be required: ", e);
+            });
         }
 
-        // Called when timer hits 0
         function playSound() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-            
-            // Force resume in case iOS suspended it during the 20 minute wait
-            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-            
-            try {
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Pitch (A5)
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                // Explicitly start volume at 1, then fade out smoothly
-                gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2); 
-                
-                oscillator.start(audioCtx.currentTime);
-                oscillator.stop(audioCtx.currentTime + 2);
-            } catch(e) { 
-                console.log("Audio play failed: ", e); 
-            }
+            alarmAudio.currentTime = 0; // Reset to start
+            alarmAudio.play().catch((e) => {
+                console.log("Audio play failed: ", e);
+            });
         }
 
         async function requestWakeLock() {
@@ -268,7 +299,7 @@
                     secondsRemaining -= 1;
                     updateUI();
                 } else {
-                    playSound(); // RING THE BELL
+                    playSound();
                     cancelScreenAwake();
                 }
             }, 1000);
@@ -306,7 +337,6 @@
                 await requestWakeLock();
             }
         });
-
     </script>
 </body>
 </html>
