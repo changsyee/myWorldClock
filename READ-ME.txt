@@ -1,0 +1,35 @@
+Tkinter (Python GUI Lib), pytz # Time Zone 설치
+앱(Exe 파일)으로 만들기
+> pip3 install pyinstaller
+> pyinstaller --noconsole --onefile myWorldClock.py
+
+끝나면 dist라는 폴더속에 world_clock.exe 파일이 있음.
+
+PyInstaller location. path에 넣어야 쉽게 사용
+C:\Users\chang\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\Scripts\pyinstaller\
+=========================
+ Raspberry Pi Zero 2 W
+=========================
+> sudo apt install python3-pytz
+> sudo apt install fonts-unfonts-core
+\Windows\Fonts\batang.ttc(궁서)를 Raspberry /usr/local/share/fonts로 복사
+fc-cache -v
+[ 한글을 입력할 필요가 있을때 ]
+sudo apt install ibus ibus-hangul
+*** Reboot Raspberry
+Raspberry>Preferences>iBus Pereferences>input method tab>Add Korean-Hangul
+
+auto start: create ~/.config/labwc/autostart라는 command line file
+# sleep 5 &
+/usr/bin/python3 /home/changsyee/RaspOSmyWorldClock.py &
+=========================
+ Linux 같으나 마지막 exe만들때 조금 다름
+=========================
+프로그램을 앱(Exe 파일)으로 만드는 법
+Bash> pyinstaller --onefile --noconsole --name="MyWorldClock" world_clock.py
+옵션 설명:
+--onefile: 잡다한 파일 없이 깔끔하게 하나의 실행 파일로 만듭니다.
+--noconsole: 실행했을 때 도스(콘솔)이 뜨지 않게 (GUI 프로그램 필수 옵션).
+--name="MyWorldClock": 생성될 파일의 이름을 지정합니다.
+
+=== MacOS ver을 update하라고 나오지만 구형 Mac에서 더이상 가능하지 않을때, Apple Site에 가서 update. 
