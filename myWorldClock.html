@@ -192,6 +192,9 @@
             if (localTimeZone === "America/Los_Angeles") {
                 document.getElementById("display-1").innerText = `🇰🇷 서울: ${getTzTime("Asia/Seoul")}`;
                 document.getElementById("display-2").innerText = `🇦🇺 Sydney: ${getTzTime("Australia/Sydney")}`;
+            } else if (localTimeZone === "Asia/Seoul") {
+                document.getElementById("display-1").innerText = `🇺🇸 LA: ${getTzTime("America/Los_Angeles")}`;
+                document.getElementById("display-2").innerText = `🇦🇺 Sydney: ${getTzTime("Australia/Sydney")}`;
             } else {
                 document.getElementById("display-1").innerText = `🇺🇸 LA: ${getTzTime("America/Los_Angeles")}`;
                 document.getElementById("display-2").innerText = `🇰🇷 서울: ${getTzTime("Asia/Seoul")}`;
