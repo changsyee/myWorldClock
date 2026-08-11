@@ -1,9 +1,7 @@
 ###############################################################################
 ##  Analog + Digital Seoul & Sydney World Clock
-##  Author: Chang S Yee (이창석)
-##  Created: 2026-0205
-##  Updated: 2026-0218 - Optimized by pre-creating hands and text objects, and
-##  using itemconfig to update text instead of deleting/recreating.
+##  Created: 2026-0205, Updated: 2026-0218 with help of Gemini.
+##     Optimized: pre-creating objects like hands, use itemconfig.
 ###############################################################################
 import tkinter as tk                     # Python GUI Library
 import math; import time; import pytz    # utilities like timezone
